@@ -4,3 +4,4 @@
 *.terraform.lock.hcl
 *.terraform.*
 *.pem
+avd_boot.ps1
