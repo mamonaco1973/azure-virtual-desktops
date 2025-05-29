@@ -67,6 +67,13 @@ resource "azurerm_network_interface" "avd_nic" {
   }
 }
 
+resource "azurerm_role_assignment" "aad_join_permission" {
+  count                = var.session_host_count
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Azure AD Join"
+  principal_id         = azurerm_windows_virtual_machine.avd_session_host[count.index].identity[0].principal_id
+}
+
 resource "azurerm_windows_virtual_machine" "avd_session_host" {
   count               = var.session_host_count
   name                = "avd-session-${count.index}"
