@@ -32,10 +32,6 @@ resource "azurerm_resource_group" "project_rg" {
                                               # Name must be globally unique within the subscription
   location = var.project_location             # Region where resources will be deployed
                                               # Pick the region closest to your users or workloads
-}
+} 
 
 
-variable "azure_domain" {
-  description = "The default Azure AD domain"
-#  default     = "mamonaco1973gmail.onmicrosoft.com"
-}
