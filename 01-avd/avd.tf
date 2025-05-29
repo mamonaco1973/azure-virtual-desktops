@@ -1,12 +1,13 @@
 resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
-  name                = "avd-host-pool"
-  location            = var.project_location
-  resource_group_name = azurerm_resource_group.project_rg.name
-  type                = "Pooled"
-  load_balancer_type  = "BreadthFirst"
-  preferred_app_group_type = "Desktop"
-  start_vm_on_connect = true
-  validate_environment = true
+  name                         = "avd-host-pool"
+  location                     = var.project_location
+  resource_group_name          = azurerm_resource_group.project_rg.name
+  type                         = "Pooled"
+  load_balancer_type           = "BreadthFirst"
+  preferred_app_group_type     = "Desktop"
+  start_vm_on_connect          = true
+  validate_environment         = true
+  aad_join_type                = "AzureAD"
 }
 
 resource "azurerm_virtual_desktop_application_group" "avd_app_group" {
@@ -73,7 +74,7 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
   location            = var.project_location
   resource_group_name = azurerm_resource_group.project_rg.name
   size                = "Standard_D2s_v3"
-  admin_username      = "adminuser"                                
+  admin_username      = "sysadmin"                                
   admin_password      = random_password.vm_password.result
 
   network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id]
@@ -99,36 +100,18 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
   }
 }
 
-# resource "azurerm_virtual_machine_extension" "join_domain" {
-#   count               = var.session_host_count
-#   name                = "domain-join-${count.index}"
-#   virtual_machine_id  = azurerm_windows_virtual_machine.avd_session_host[count.index].id
-#   publisher           = "Microsoft.Compute"
-#   type                = "CustomScriptExtension"
-#   type_handler_version = "1.10"
+resource "azurerm_virtual_machine_extension" "join_domain" {
+  count               = var.session_host_count
+  name                = "domain-join-${count.index}"
+  virtual_machine_id  = azurerm_windows_virtual_machine.avd_session_host[count.index].id
+  publisher           = "Microsoft.Compute"
+  type                = "CustomScriptExtension"
+  type_handler_version = "1.10"
 
-#   settings = jsonencode({
-#     fileUris = [
-#       "https://${azurerm_storage_account.scripts_storage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.avd_boot_script.name}?${data.azurerm_storage_account_sas.script_sas.sas}"
-#     ],
-#     commandToExecute = "powershell.exe -ExecutionPolicy Unrestricted -File avd-boot.ps1 *>> C:\\WindowsAzure\\Logs\\avd-boot.log"
-#   })
-# }
-
-# resource "azurerm_virtual_machine_extension" "avd_agent" {
-#   count                = var.session_host_count
-#   name                 = "AVD-Agent-Join-${count.index}"
-#   virtual_machine_id   = azurerm_windows_virtual_machine.avd_session_host[count.index].id
-#   publisher            = "Microsoft.Azure.VirtualDesktop"
-#   type                 = "MicrosoftWindowsDesktop"
-#   type_handler_version = "1.0"
-
-#   settings = <<SETTINGS
-#   {
-#     "registrationToken": "${azurerm_virtual_desktop_host_pool_registration_info.token.token}",
-#     "joinType": "AzureADJoin"
-#   }
-#   SETTINGS
-
-#   auto_upgrade_minor_version = true
-# }
+  settings = jsonencode({
+    fileUris = [
+      "https://${azurerm_storage_account.scripts_storage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.avd_boot_script.name}?${data.azurerm_storage_account_sas.script_sas.sas}"
+    ],
+    commandToExecute = "powershell.exe -ExecutionPolicy Unrestricted -File avd-boot.ps1 *>> C:\\WindowsAzure\\Logs\\avd-boot.log"
+  })
+}
