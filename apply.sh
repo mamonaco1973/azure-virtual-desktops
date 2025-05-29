@@ -10,11 +10,16 @@ if [ $? -ne 0 ]; then
 fi
 
 #-------------------------------------------------------------------------------
-# STEP 1: Provision bastion infrastructure (VNet, subnets, NICs, etc.)
+# STEP 1: Provision AVD infrastructure (VNet, subnets, NICs, etc.)
 #-------------------------------------------------------------------------------
-cd 01-bastion                      # Navigate to Terraform infra folder
+
+default_domain=$(az rest --method get --url "https://graph.microsoft.com/v1.0/domains" --query "value[?isDefault].id" --output tsv)
+echo "NOTE: Default domain for account is $default_domain"
+
+cd 01-avd                           # Navigate to Terraform infra folder
 terraform init                      # Initialize Terraform plugins/backend
-terraform apply -auto-approve       # Apply infrastructure configuration without prompt
+terraform apply -var="azure_domain=$default_domain"  -auto-approve       
+                                    # Apply infrastructure configuration without prompt
 cd ..                               # Return to root directory
 
 #-------------------------------------------------------------------------------

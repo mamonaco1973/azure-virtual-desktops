@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------------------------------
 variable "project_resource_group" {
   description = "Name of the Azure Resource Group"             # This is the container for all resources
-  default     = "bastion-rg"                                   # Default RG name unless overridden
+  default     = "avd-rg"                                       # Default RG name unless overridden
   type        = string                                         # Must be a string (no lists, no objects)
 }
 
@@ -12,7 +12,7 @@ variable "project_resource_group" {
 # -------------------------------------------------------------------------------------------------
 variable "project_vnet" {
   description = "Name of the Azure Virtual Network"            # The logical network space for your project
-  default     = "bastion-vnet"                                 # Default name — can be overridden via CLI/TFVars
+  default     = "avd-vnet"                                     # Default name — can be overridden via CLI/TFVars
   type        = string
 }
 
@@ -32,4 +32,13 @@ variable "project_location" {
   description = "Azure region where resources will be deployed (e.g., eastus, westeurope)"  # Must match available Azure regions
   default     = "Central US"                                                                # Change this if deploying in a different region
   type        = string
+}
+
+# -------------------------------------------------------------------------------------------------
+# DEFAULT AZURE DOMAIN
+# -------------------------------------------------------------------------------------------------
+
+variable "azure_domain" {
+  description = "The default Azure AD domain"
+#  default     = "mamonaco1973gmail.onmicrosoft.com"
 }
