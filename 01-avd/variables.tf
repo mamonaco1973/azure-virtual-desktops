@@ -42,3 +42,10 @@ variable "azure_domain" {
   description = "The default Azure AD domain"
 #  default     = "mamonaco1973gmail.onmicrosoft.com"
 }
+
+
+variable "session_host_count" {
+   type        = number
+   default     = 1
+   description = "Number of AVD session host VMs to deploy"
+}

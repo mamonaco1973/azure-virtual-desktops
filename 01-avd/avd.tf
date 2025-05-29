@@ -54,63 +54,50 @@ resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
   expiration_date = timeadd(timestamp(), "24h")
 }
 
-# resource "azurerm_network_interface" "avd_nic" {
-#   count               = var.session_host_count
-#   name                = "avd-nic-${count.index}"
-#   location            = var.project_location
-#   resource_group_name = azurerm_resource_group.project_rg.name
+resource "azurerm_network_interface" "avd_nic" {
+  count               = var.session_host_count
+  name                = "avd-nic-${count.index}"
+  location            = var.project_location
+  resource_group_name = azurerm_resource_group.project_rg.name
 
-#   ip_configuration {
-#     name                          = "internal"
-#     subnet_id                     = data.azurerm_subnet.vm_subnet.id
-#     private_ip_address_allocation = "Dynamic"
-#   }
-# }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = data.azurerm_subnet.vm_subnet.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 
-# resource "azurerm_windows_virtual_machine" "avd_session_host" {
-#   count               = var.session_host_count
-#   name                = "avd-session-${count.index}"
-#   location            = var.project_location
-#   resource_group_name = azurerm_resource_group.project_rg.name
-#   size                = "Standard_D2s_v3"
-#   admin_username      = "adminuser"                                
-#   admin_password      = random_password.win_adminuser_password.result 
+resource "azurerm_windows_virtual_machine" "avd_session_host" {
+  count               = var.session_host_count
+  name                = "avd-session-${count.index}"
+  location            = var.project_location
+  resource_group_name = azurerm_resource_group.project_rg.name
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"                                
+  admin_password      = random_password.vm_password.result
 
-#   network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id]
+  network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id]
 
-#   os_disk {
-#     caching              = "ReadWrite"
-#     storage_account_type = "Standard_LRS"
-#   }
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
 
-#   source_image_reference {
-#     publisher = "MicrosoftWindowsDesktop"
-#     offer     = "windows-11"
-#     sku       = "win11-22h2-avd"
-#     version   = "latest"
-#   }
+  source_image_reference {
+    publisher = "MicrosoftWindowsDesktop"
+    offer     = "windows-11"
+    sku       = "win11-22h2-avd"
+    version   = "latest"
+  }
 
-#   identity {
-#     type = "SystemAssigned"
-#   }
+  identity {
+    type = "SystemAssigned"
+  }
 
-#   tags = {
-#     Role = "AVD-SessionHost"
-#   }
-# }
-
-# variable "session_host_count" {
-#   type        = number
-#   default     = 1
-#   description = "Number of AVD session host VMs to deploy"
-# }
-
-# resource "azurerm_role_assignment" "sessionhost_key_vault_secrets_user" {
-#   count                = var.session_host_count
-#   scope                = data.azurerm_key_vault.ad_key_vault.id
-#   role_definition_name = "Key Vault Secrets User"
-#   principal_id         = azurerm_windows_virtual_machine.avd_session_host[count.index].identity[0].principal_id
-# }
+  tags = {
+    Role = "AVD-SessionHost"
+  }
+}
 
 # resource "azurerm_virtual_machine_extension" "join_domain" {
 #   count               = var.session_host_count
@@ -122,11 +109,9 @@ resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
 
 #   settings = jsonencode({
 #     fileUris = [
-#       "https://${azurerm_storage_account.scripts_storage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.avd_ad_join_script.name}?${data.azurerm_storage_account_sas.script_sas.sas}"
+#       "https://${azurerm_storage_account.scripts_storage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.avd_boot_script.name}?${data.azurerm_storage_account_sas.script_sas.sas}"
 #     ],
-#     commandToExecute = "powershell.exe -ExecutionPolicy Unrestricted -File avd-ad-join.ps1 *>> C:\\WindowsAzure\\Logs\\avd-ad-join.log"
+#     commandToExecute = "powershell.exe -ExecutionPolicy Unrestricted -File avd-boot.ps1 *>> C:\\WindowsAzure\\Logs\\avd-boot.log"
 #   })
-
-#   depends_on = [azurerm_windows_virtual_machine.avd_session_host,azurerm_virtual_machine_extension.join_script,azurerm_role_assignment.sessionhost_key_vault_secrets_user]
 # }
 
