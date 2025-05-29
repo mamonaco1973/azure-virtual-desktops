@@ -7,7 +7,6 @@ resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
   preferred_app_group_type     = "Desktop"
   start_vm_on_connect          = true
   validate_environment         = true
-  aad_join_type                = "AzureAD"
 }
 
 resource "azurerm_virtual_desktop_application_group" "avd_app_group" {
