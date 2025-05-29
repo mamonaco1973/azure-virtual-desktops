@@ -67,13 +67,6 @@ resource "azurerm_network_interface" "avd_nic" {
   }
 }
 
-# resource "azurerm_role_assignment" "aad_join_permission" {
-#   count                = var.session_host_count
-#   scope                = data.azurerm_subscription.primary.id
-#   role_definition_name = "Join Devices to Azure AD"
-#   principal_id         = azurerm_windows_virtual_machine.avd_session_host[count.index].identity[0].principal_id
-# }
-
 resource "azurerm_windows_virtual_machine" "avd_session_host" {
   count               = var.session_host_count
   name                = "avd-session-${count.index}"
@@ -122,3 +115,20 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
 #   })
 # }
 
+resource "azurerm_virtual_machine_extension" "avd_agent" {
+  count                = var.session_host_count
+  name                 = "AVD-Agent-Join-${count.index}"
+  virtual_machine_id   = azurerm_windows_virtual_machine.avd_session_host[count.index].id
+  publisher            = "Microsoft.Azure.VirtualDesktop"
+  type                 = "MicrosoftWindowsDesktop"
+  type_handler_version = "1.0"
+
+  settings = <<SETTINGS
+  {
+    "registrationToken": "${azurerm_virtual_desktop_host_pool_registration_info.token.token}",
+    "joinType": "AzureADJoin"
+  }
+  SETTINGS
+
+  auto_upgrade_minor_version = true
+}
