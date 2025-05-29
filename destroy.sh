@@ -8,7 +8,7 @@ echo "NOTE: Default domain for account is $default_domain"
 #-------------------------------------------------------------------------------
 cd 01-avd                          # Go to base infra config
 terraform init                     # Initialize Terraform plugins/modules
-terraform destroy -var="azure_domain=$default_domain"-auto-approve    
+terraform destroy -var="azure_domain=$default_domain" -auto-approve    
                                    # Destroy all foundational Azure resources
 cd ..                              # Return to root
 
