@@ -65,6 +65,8 @@ Write-Output "AVD agent and bootloader installed successfully."
 # Final Reboot to Apply Changes
 # ------------------------------------------------------------
 
+dsregcmd.exe /join
+
 Write-Output "Finalize AVD setup with a reboot"
 
 # Reboot the server to finalize the domain join and group policies

@@ -70,7 +70,7 @@ resource "azurerm_network_interface" "avd_nic" {
 resource "azurerm_role_assignment" "aad_join_permission" {
   count                = var.session_host_count
   scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Azure AD Join"
+  role_definition_name = "Join Devices to Azure AD"
   principal_id         = azurerm_windows_virtual_machine.avd_session_host[count.index].identity[0].principal_id
 }
 
