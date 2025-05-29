@@ -1,8 +1,8 @@
 # --- Storage account to hold deployment scripts ---
 resource "azurerm_storage_account" "scripts_storage" {
   name                     = "vmscripts${random_string.storage_name.result}" # Storage account name with random suffix to ensure uniqueness
-  resource_group_name      = data.azurerm_resource_group.ad.name              # Place it in the existing resource group
-  location                 = data.azurerm_resource_group.ad.location          # Use the same location as the resource group
+  resource_group_name      = azurerm_resource_group.project_rg.name           # Place it in the existing resource group
+  location                 = var.project_location                            # Use the same location as the resource group
   account_tier             = "Standard"                                       # Standard tier (cost-effective option)
   account_replication_type = "LRS"                                            # Locally redundant storage (replicated within a single region)
 }
