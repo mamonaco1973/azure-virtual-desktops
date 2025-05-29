@@ -46,7 +46,7 @@ resource "azurerm_role_assignment" "avd_user2_access" {
 resource "azurerm_role_assignment" "avd_user3_access" {
   scope                = azurerm_virtual_desktop_application_group.avd_app_group.id
   role_definition_name = "Desktop Virtualization User"
-  principal_id         = azuread_user.avd_user2.object_id
+  principal_id         = azuread_user.avd_user3.object_id
 }
 
 resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
