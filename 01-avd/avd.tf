@@ -11,6 +11,7 @@ resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
   start_vm_on_connect          = true                                           # Auto-start VMs on user connect
   validate_environment         = true                                           # Validate host pool environment
   custom_rdp_properties        = "enablerdsaadauth:i:1;targetisaadjoined:i:1"   # Enable Entra ID authentication
+  friendly_name                = "@MikesCloudSolutions Desktop"
 }
 
 # ------------------------------------------------------------
@@ -30,7 +31,7 @@ resource "azurerm_virtual_desktop_application_group" "avd_app_group" {
   resource_group_name = azurerm_resource_group.project_rg.name                  # Resource group
   host_pool_id        = azurerm_virtual_desktop_host_pool.avd_host_pool.id      # Link to host pool
   type                = "Desktop"                                               # Application group type
-  friendly_name       = "AVD Desktop AppGroup"                                  # Display name
+  friendly_name       = "@MikesCloudSolutions AppGroup"                         # Display name
 }
 
 # ------------------------------------------------------------
@@ -40,7 +41,7 @@ resource "azurerm_virtual_desktop_workspace" "avd_workspace" {
   name                = "avd-workspace"                                         # Workspace name
   location            = var.project_location                                    # Azure region
   resource_group_name = azurerm_resource_group.project_rg.name                  # Resource group
-  friendly_name       = "AVD Workspace"                                         # Display name
+  friendly_name       = "@MikesCloudSolutions Workspace"                        # Display name
   description         = "Workspace for AVD desktops"                            # Description
 }
 
