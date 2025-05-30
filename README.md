@@ -50,6 +50,7 @@ Common use cases include:
 * [Install Latest Terraform](https://developer.hashicorp.com/terraform/install)
 * [Microsoft.AAD](https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/identity#microsoftaad) Provider must be enabled
 * `Global Administrator` **Entra ID** role must be assigned to build identity
+* [Windows App](https://apps.microsoft.com/detail/9n1f85v9t8bn?hl=en-US&gl=US) needs to be installed to access the azure virtual desktop.
 
 If this is your first time watching our content, we recommend starting with this video: [Azure + Terraform: Easy Setup](https://www.youtube.com/watch?v=wwi3kVgYNOk). It provides a step-by-step guide to properly configure Terraform, Packer, and the AZ CLI.
 
@@ -65,7 +66,31 @@ cd azure-virtual-desktops
 Run [check_env](check_env.sh) then run [apply](apply.sh).
 
 ```bash
+azure-virtual-desktops$ ./apply.sh
+NOTE: Validating that required commands are found in your PATH.
+NOTE: az is found in the current PATH.
+NOTE: terraform is found in the current PATH.
+NOTE: jq is found in the current PATH.
+NOTE: All required commands are available.
+NOTE: Validating that required environment variables are set.
+NOTE: ARM_CLIENT_ID is set.
+NOTE: ARM_CLIENT_SECRET is set.
+NOTE: ARM_SUBSCRIPTION_ID is set.
+NOTE: ARM_TENANT_ID is set.
+NOTE: All required environment variables are set.
+NOTE: Logging in to Azure using Service Principal...
+NOTE: Successfully logged into Azure.
+NOTE: Default domain for account is mamonaco1973gmail.onmicrosoft.com
+Initializing the backend...
+Initializing provider plugins...
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Reusing previous version of hashicorp/random from the dependency lock file
+- Reusing previous version of hashicorp/azuread from the dependency lock file
+- Using previously-installed hashicorp/azurerm v4.30.0
+- Using previously-installed hashicorp/random v3.7.2
+- Using previously-installed hashicorp/azuread v3.4.0
 
+Terraform has been successfully initialized!
 [...]
 ```
 
@@ -74,27 +99,27 @@ Run [check_env](check_env.sh) then run [apply](apply.sh).
 
 This section shows the key components of the environment after deployment:
 
-- **The Active Directory Instance**  
+- **Entra ID Users**  
 
-  The AWS Directory Service provides the core identity infrastructure, allowing EC2 instances and WorkSpaces to join the domain.  
+Entra ID users are created for the virtual desktops.
 
-  ![AWS Directory](console1.png)
+  ![EntraID](console1.png)
 
-- **The EC2 Instance2**  
+- **The VM Instances**  
 
-EC2 instances are domain-joined during initialization and can be accessed using RDP and SSH via the private network.  
+Two instances are created. The first is the session for AVD and the second is a private linux VM running a Apache HTTP server.
   
-  ![AWS EC2 Instance](console2.png)
+  ![VM Instances](console2.png)
 
-- **The Workspace Client**  
+- **The Windows App Client**
 
-  The WorkSpaces client application is used to securely access the virtual desktop provisioned for the `Admin` user.  Note the custom branding logo that we uploaded during the build.
+  The `Windows App` client application is used to securely access the virtual desktop provisioned for the `Entra ID users`.
   
   ![Workspace Client](workspaces1.png)
 
-- **The Admin Workspace**  
+- **The Azure Virtual Desktop Instances**  
 
-  This cloud-based Windows desktop is fully domain-joined and acts as a secure bastion host for managing the private environment.  
+  This cloud-based Windows desktop is joined to Entra ID (aka Azure AD) and acts as a secure host for managing private virtual network resources. 
   
   ![Workspace Desktop](workspaces2.png)
 

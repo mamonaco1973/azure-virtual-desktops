@@ -87,12 +87,12 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
     storage_account_type = "Standard_LRS"                                       # Storage type
   }
 
- source_image_reference {
-  publisher = "MicrosoftWindowsServer"
-  offer     = "windowsserver-avd"
-  sku       = "windows-server-2022-datacenter-smalldisk-g2"
-  version   = "latest"
-}
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
 
   # source_image_reference {
   #   publisher = "MicrosoftWindowsDesktop"                                       # Image publisher
