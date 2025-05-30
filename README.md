@@ -93,35 +93,71 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 [...]
 ```
-
-
 ## Review Build Results
 
-This section shows the key components of the environment after deployment:
+After deploying the Azure Virtual Desktop (AVD) environment, you’ll find several key components provisioned and visible in the Azure portal:
 
-- **Entra ID Users**  
+---
 
-Entra ID users are created for the virtual desktops.
+### **Entra ID Users**
 
-  ![EntraID](console1.png)
+Entra ID (formerly Azure AD) users are created to enable secure authentication into the virtual desktop environment. These users are assigned the necessary permissions to access and manage the AVD session hosts.
 
-- **The VM Instances**  
+![Entra ID](console1.png)
 
-Two instances are created. The first is the session for AVD and the second is a private linux VM running a Apache HTTP server.
-  
-  ![VM Instances](console2.png)
+---
 
-- **The Windows App Client**
+### **Virtual Machines**
 
-  The `Windows App` client application is used to securely access the virtual desktop provisioned for the `Entra ID users`.
-  
-  ![Workspace Client](workspaces1.png)
+Two virtual machines are deployed as part of the setup:
 
-- **The Azure Virtual Desktop Instances**  
+- **AVD Session Host**: A Windows Server VM configured for Azure Virtual Desktop. This host is domain-joined to Entra ID and serves as the remote desktop environment.
+- **Linux Web Server**: A private Linux VM hosting an Apache HTTP server, reachable only from within the virtual network—ideal for testing private resource access from the session host.
 
-  This cloud-based Windows desktop is joined to Entra ID (aka Azure AD) and acts as a secure host for managing private virtual network resources. 
-  
-  ![Workspace Desktop](workspaces2.png)
+![VM Instances](console2.png)
+
+---
+
+### **Windows App Client**
+
+The `Windows App` client is used to connect to the Azure Virtual Desktop environment. Entra ID users sign in through this application to launch their remote session securely.
+
+![Windows App Client](avd1.png)
+
+---
+
+### **Azure Virtual Desktop Environment**
+
+The deployed AVD session host is joined to Entra ID and resides within a secure virtual network. From this virtual desktop, users can access internal resources like the Linux web server without requiring a public IP or VPN—enabling secure, remote productivity.
+
+![AVD Session](avd2.png)
+
+## Steps to Log Into Your AVD Instance
+
+1. **Launch the Windows App Client**  
+   Start the Windows App client on your local machine.
+
+2. **Retrieve AVD User Credentials**  
+   Use Azure Key Vault to retrieve the credentials for one of the Entra ID AVD users (e.g., `avd-user1-XXXXX`).
+
+3. **Sign In**  
+   Log in to the Windows App client using the retrieved credentials.
+
+4. **Enable MFA (If Prompted)**  
+   If prompted, complete Multi-Factor Authentication for the AVD user.
+
+5. **Connect to Session Desktop**  
+   Click on the **SessionDesktop** to initiate the remote connection.
+
+6. **Wait for Desktop to Launch**  
+   Wait for your Windows desktop environment to fully load.
+
+7. **Locate Linux VM Private IP**  
+   In the Azure Console, find the **private IP address** of the Linux VM.
+
+8. **Access the Apache HTTP Page**  
+   Open Microsoft Edge in the AVD session and navigate to `http://<private-ip>`.  
+   You should see the default Apache HTTP welcome page.
 
 ## Run the "destroy" script when you are done
 
