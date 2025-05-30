@@ -1,15 +1,20 @@
 #############################################
-# LOCAL USER MAP
+# GENERATE RANDOM SUFFIXES FOR USERNAMES
 #############################################
 
-# Define a map of user keys to user names
-# Keys ("user1", etc.) are used for indexing, naming resources uniquely
-# Values are the actual Entra ID usernames to be created
+resource "random_id" "avd_user_suffix" {
+  for_each = toset(["user1", "user2", "user3"])  # Define all base user keys
+  byte_length = 3                                # 3 bytes = 6 hex characters
+}
+
+#############################################
+# BUILD LOCAL USER MAP WITH RANDOM SUFFIXES
+#############################################
+
 locals {
   avd_users = {
-    "user1" = "avd-user1"
-    "user2" = "avd-user2"
-    "user3" = "avd-user3"
+    for key in ["user1", "user2", "user3"] :
+    key => "avd-${key}-${random_id.avd_user_suffix[key].hex}"
   }
 }
 

@@ -87,12 +87,19 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
     storage_account_type = "Standard_LRS"                                       # Storage type
   }
 
-  source_image_reference {
-    publisher = "MicrosoftWindowsDesktop"                                       # Image publisher
-    offer     = "windows-11"                                                    # Image offer
-    sku       = "win11-22h2-avd"                                                # Image SKU for AVD
-    version   = "latest"                                                        # Use latest version
-  }
+ source_image_reference {
+  publisher = "MicrosoftWindowsServer"
+  offer     = "windowsserver-avd"
+  sku       = "windows-server-2022-datacenter-smalldisk-g2"
+  version   = "latest"
+}
+
+  # source_image_reference {
+  #   publisher = "MicrosoftWindowsDesktop"                                       # Image publisher
+  #   offer     = "windows-11"                                                    # Image offer
+  #   sku       = "win11-22h2-avd"                                                # Image SKU for AVD
+  #   version   = "latest"                                                        # Use latest version
+  # }
 
   identity {
     type = "SystemAssigned"                                                     # Required for Entra ID join
