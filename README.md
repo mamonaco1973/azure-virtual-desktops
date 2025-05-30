@@ -135,7 +135,7 @@ The deployed AVD session host is joined to Entra ID and resides within a secure 
 ## Steps to Log Into Your AVD Instance
 
 1. **Launch the Windows App Client**  
-   Start the Windows App client on your local machine.
+   Start the Windows App client on your local machine or use the [Web Client](https://windows.cloud.microsoft/)
 
 2. **Retrieve AVD User Credentials**  
    Use Azure Key Vault to retrieve the credentials for one of the Entra ID AVD users (e.g., `avd-user1-XXXXX`).
