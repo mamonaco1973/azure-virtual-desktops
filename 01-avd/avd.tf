@@ -149,7 +149,6 @@ resource "azurerm_virtual_machine_extension" "avd_agent" {
   depends_on = [azurerm_virtual_machine_extension.aad_login]
 }
 
-# Optional: Reboot extension to finalize setup
 resource "azurerm_virtual_machine_extension" "reboot" {
   count                = var.session_host_count
   name                 = "reboot-${count.index}"
@@ -158,7 +157,7 @@ resource "azurerm_virtual_machine_extension" "reboot" {
   type                 = "CustomScriptExtension"
   type_handler_version = "1.10"
   settings = jsonencode({
-    commandToExecute = "shutdown /r /t 5 /c 'Finalize AVD setup' /f /d p:4:1"
+    commandToExecute = "powershell -Command \"Start-Process -FilePath shutdown.exe -ArgumentList '/r /t 5 /c \\\"Finalize AVD setup\\\" /f' -NoNewWindow; exit 0\""
   })
   depends_on = [azurerm_virtual_machine_extension.avd_agent]
 }
