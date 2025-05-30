@@ -41,25 +41,6 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "avd_
   application_group_id = azurerm_virtual_desktop_application_group.avd_app_group.id
 }
 
-# RBAC: Desktop Virtualization User role for users
-resource "azurerm_role_assignment" "avd_user1_access" {
-  scope                = azurerm_virtual_desktop_application_group.avd_app_group.id
-  role_definition_name = "Desktop Virtualization User"
-  principal_id         = azuread_user.avd_user1.object_id
-}
-
-resource "azurerm_role_assignment" "avd_user2_access" {
-  scope                = azurerm_virtual_desktop_application_group.avd_app_group.id
-  role_definition_name = "Desktop Virtualization User"
-  principal_id         = azuread_user.avd_user2.object_id
-}
-
-resource "azurerm_role_assignment" "avd_user3_access" {
-  scope                = azurerm_virtual_desktop_application_group.avd_app_group.id
-  role_definition_name = "Desktop Virtualization User"
-  principal_id         = azuread_user.avd_user3.object_id
-}
-
 # RBAC: Virtual Machine User Login role for Entra ID login
 resource "azurerm_role_assignment" "vm_user_login" {
   count                = 3
