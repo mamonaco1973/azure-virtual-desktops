@@ -1,0 +1,128 @@
+# Azure Virtual Desktop
+
+In this video we will —
+
+- Deploy a fully automated **Azure Virtual Desktop** environment using Terraform  
+- Use **Windows Server 2022** session hosts joined directly to **Entra ID**  
+- Create a pooled **host pool**, application group, and workspace  
+- Bootstrap each session host with the AVD agent and Entra ID login support  
+- Generate dynamic Entra ID users with randomized logins and secure credentials  
+- Store credentials securely in **Azure Key Vault**
+
+## Introduction
+
+This project demonstrates how to deploy a modern, cloud-native **Azure Virtual Desktop** solution without domain controllers or hybrid join:
+
+- A **pooled host pool** is created in `Central US`, using **Windows Server 2022**
+- Session hosts are joined directly to **Entra ID** and auto-registered with the host pool
+- Users like `avd-user1-xxxxxx` are generated dynamically and granted AVD and VM access
+- A full **workspace** is published, allowing users to connect via the AVD client on the public internet
+- Once inside the desktop environment, users can securely access private resources within the virtual network — effectively allowing AVD to function as a lightweight alternative to a traditional VPN.
+
+![Azure diagram](azure-avd.png)
+## Overview of Desktop as a Service
+
+**Desktop as a Service (DaaS)** delivers cloud-hosted virtual desktops to end users, eliminating the need for physical hardware or traditional on-premises VDI infrastructure. Organizations can provision secure, scalable desktop environments directly from the cloud with simplified deployment and centralized control.
+
+Users can connect from anywhere using the Remote Desktop client or browser, while IT teams benefit from unified identity management, integrated security, and flexible cost control.
+
+**Azure Virtual Desktop (AVD)** is Microsoft’s DaaS solution, providing Windows 10/11 and Windows Server-based desktops with seamless integration to Entra ID (formerly Azure AD), Microsoft 365, and other Azure services. It supports features like:
+
+- Direct Entra ID join (no domain controllers required)  
+- Auto-scaling and session-based load balancing  
+- Pooled or personal desktops with granular access control  
+- Integration with Azure Files, FSLogix, and Key Vault for storage and identity management
+
+Common use cases include:
+
+- Secure remote work for employees, contractors, and partners  
+- Cloud desktops for training, development, or regulated workloads  
+- Reducing IT overhead for desktop provisioning, patching, and compliance  
+- Enabling scalable desktops in hybrid or fully cloud-native environments
+
+## Prerequisites
+
+
+## Prerequisites
+
+* [An Azure Account](https://portal.azure.com/)
+* [Install AZ CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) 
+* [Install Latest Terraform](https://developer.hashicorp.com/terraform/install)
+* [Microsoft.AAD](https://learn.microsoft.com/en-us/azure/role-based-access-control/permissions/identity#microsoftaad) Provider must be enabled
+* `Global Administrator` **Entra ID** role must be assigned to build identity
+
+If this is your first time watching our content, we recommend starting with this video: [Azure + Terraform: Easy Setup](https://www.youtube.com/watch?v=wwi3kVgYNOk). It provides a step-by-step guide to properly configure Terraform, Packer, and the AZ CLI.
+
+## Download this Repository
+
+```bash
+git clone https://github.com/mamonaco1973/azure-virtual-desktops.git
+cd azure-virtual-desktops
+```
+
+## Build the Code
+
+Run [check_env](check_env.sh) then run [apply](apply.sh).
+
+```bash
+
+[...]
+```
+
+
+## Review Build Results
+
+This section shows the key components of the environment after deployment:
+
+- **The Active Directory Instance**  
+
+  The AWS Directory Service provides the core identity infrastructure, allowing EC2 instances and WorkSpaces to join the domain.  
+
+  ![AWS Directory](console1.png)
+
+- **The EC2 Instance2**  
+
+EC2 instances are domain-joined during initialization and can be accessed using RDP and SSH via the private network.  
+  
+  ![AWS EC2 Instance](console2.png)
+
+- **The Workspace Client**  
+
+  The WorkSpaces client application is used to securely access the virtual desktop provisioned for the `Admin` user.  Note the custom branding logo that we uploaded during the build.
+  
+  ![Workspace Client](workspaces1.png)
+
+- **The Admin Workspace**  
+
+  This cloud-based Windows desktop is fully domain-joined and acts as a secure bastion host for managing the private environment.  
+  
+  ![Workspace Desktop](workspaces2.png)
+
+## Run the "destroy" script when you are done
+
+```bash
+~/azure-virtual-desktops$ ./destroy.sh
+NOTE: Default domain for account is mamonaco1973gmail.onmicrosoft.com
+Initializing the backend...
+Initializing provider plugins...
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Reusing previous version of hashicorp/random from the dependency lock file
+- Reusing previous version of hashicorp/azuread from the dependency lock file
+- Using previously-installed hashicorp/azurerm v4.30.0
+- Using previously-installed hashicorp/random v3.7.2
+- Using previously-installed hashicorp/azuread v3.4.0
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+random_password.avd_user_password["user3"]: Refreshing state... [id=none]
+random_string.key_vault_suffix: Refreshing state... [id=ipegtil7]
+[...]
+```
+
