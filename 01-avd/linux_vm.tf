@@ -29,6 +29,7 @@ resource "azurerm_linux_virtual_machine" "linux_vm" {
   size                = "Standard_B1s"                             # Size of VM (B-series are cost-effective burstable VMs)
   admin_username      = "sysadmin"                                 # Admin login for SSH or console access
   admin_password      = random_password.vm_password.result         # Randomized admin password (secure) from a separate resource
+  disable_password_authentication = false
 
   # ------------------------------
   # ASSOCIATE NETWORK INTERFACE
