@@ -1,3 +1,4 @@
+# Host pool with Entra ID authentication
 resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
   name                         = "avd-host-pool"
   location                     = var.project_location
@@ -7,8 +8,16 @@ resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
   preferred_app_group_type     = "Desktop"
   start_vm_on_connect          = true
   validate_environment         = true
+  custom_rdp_properties        = "enablerdsaadauth:i:1;targetisaadjoined:i:1" # Enable Entra ID auth
 }
 
+# Host pool registration token
+resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
+  hostpool_id     = azurerm_virtual_desktop_host_pool.avd_host_pool.id
+  expiration_date = "2025-12-31T23:59:59Z" # Static expiration to avoid state drift
+}
+
+# Application group
 resource "azurerm_virtual_desktop_application_group" "avd_app_group" {
   name                = "avd-desktop-appgroup"
   location            = var.project_location
@@ -18,6 +27,7 @@ resource "azurerm_virtual_desktop_application_group" "avd_app_group" {
   friendly_name       = "AVD Desktop AppGroup"
 }
 
+# Workspace
 resource "azurerm_virtual_desktop_workspace" "avd_workspace" {
   name                = "avd-workspace"
   location            = var.project_location
@@ -26,11 +36,13 @@ resource "azurerm_virtual_desktop_workspace" "avd_workspace" {
   description         = "Workspace for AVD desktops"
 }
 
+# Associate workspace and application group
 resource "azurerm_virtual_desktop_workspace_application_group_association" "avd_workspace_assoc" {
   workspace_id         = azurerm_virtual_desktop_workspace.avd_workspace.id
   application_group_id = azurerm_virtual_desktop_application_group.avd_app_group.id
 }
 
+# RBAC: Desktop Virtualization User role for users
 resource "azurerm_role_assignment" "avd_user1_access" {
   scope                = azurerm_virtual_desktop_application_group.avd_app_group.id
   role_definition_name = "Desktop Virtualization User"
@@ -49,11 +61,15 @@ resource "azurerm_role_assignment" "avd_user3_access" {
   principal_id         = azuread_user.avd_user3.object_id
 }
 
-resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
-  hostpool_id     = azurerm_virtual_desktop_host_pool.avd_host_pool.id
-  expiration_date = timeadd(timestamp(), "24h")
+# RBAC: Virtual Machine User Login role for Entra ID login
+resource "azurerm_role_assignment" "vm_user_login" {
+  count                = 3
+  scope                = azurerm_resource_group.project_rg.id
+  role_definition_name = "Virtual Machine User Login"
+  principal_id         = [azuread_user.avd_user1.object_id, azuread_user.avd_user2.object_id, azuread_user.avd_user3.object_id][count.index]
 }
 
+# Network interface for session hosts
 resource "azurerm_network_interface" "avd_nic" {
   count               = var.session_host_count
   name                = "avd-nic-${count.index}"
@@ -62,20 +78,20 @@ resource "azurerm_network_interface" "avd_nic" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     =  azurerm_subnet.vm-subnet.id
+    subnet_id                     = azurerm_subnet.vm-subnet.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
+# Session host VMs
 resource "azurerm_windows_virtual_machine" "avd_session_host" {
   count               = var.session_host_count
   name                = "avd-session-${count.index}"
   location            = var.project_location
   resource_group_name = azurerm_resource_group.project_rg.name
   size                = "Standard_D2s_v3"
-  admin_username      = "sysadmin"                                
+  admin_username      = "sysadmin"
   admin_password      = random_password.vm_password.result
-
   network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id]
 
   os_disk {
@@ -91,7 +107,7 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type = "SystemAssigned" # Required for Entra ID join
   }
 
   tags = {
@@ -99,18 +115,51 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "join_domain" {
-  count               = var.session_host_count
-  name                = "domain-join-${count.index}"
-  virtual_machine_id  = azurerm_windows_virtual_machine.avd_session_host[count.index].id
-  publisher           = "Microsoft.Compute"
-  type                = "CustomScriptExtension"
-  type_handler_version = "1.10"
+# AADLoginForWindows extension for Entra ID join
+resource "azurerm_virtual_machine_extension" "aad_login" {
+  count                = var.session_host_count
+  name                 = "aad-login-${count.index}"
+  virtual_machine_id   = azurerm_windows_virtual_machine.avd_session_host[count.index].id
+  publisher            = "Microsoft.Azure.ActiveDirectory"
+  type                 = "AADLoginForWindows"
+  type_handler_version = "1.0"
+  auto_upgrade_minor_version = true
+}
 
+# DSC extension for AVD Agent registration
+resource "azurerm_virtual_machine_extension" "avd_agent" {
+  count                = var.session_host_count
+  name                 = "avd-agent-${count.index}"
+  virtual_machine_id   = azurerm_windows_virtual_machine.avd_session_host[count.index].id
+  publisher            = "Microsoft.Powershell"
+  type                 = "DSC"
+  type_handler_version = "2.73"
   settings = jsonencode({
-    fileUris = [
-      "https://${azurerm_storage_account.scripts_storage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.avd_boot_script.name}?${data.azurerm_storage_account_sas.script_sas.sas}"
-    ],
-    commandToExecute = "powershell.exe -ExecutionPolicy Unrestricted -File avd-boot.ps1 *>> C:\\WindowsAzure\\Logs\\avd-boot.log"
+    modulesUrl = "https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_01-19-2023.zip"
+    configurationFunction = "Configuration.ps1\\AddSessionHost"
+    properties = {
+      hostPoolName = azurerm_virtual_desktop_host_pool.avd_host_pool.name
+      aadJoin = true
+    }
   })
+  protected_settings = jsonencode({
+    properties = {
+      registrationInfoToken = azurerm_virtual_desktop_host_pool_registration_info.token.token
+    }
+  })
+  depends_on = [azurerm_virtual_machine_extension.aad_login]
+}
+
+# Optional: Reboot extension to finalize setup
+resource "azurerm_virtual_machine_extension" "reboot" {
+  count                = var.session_host_count
+  name                 = "reboot-${count.index}"
+  virtual_machine_id   = azurerm_windows_virtual_machine.avd_session_host[count.index].id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.10"
+  settings = jsonencode({
+    commandToExecute = "shutdown /r /t 5 /c 'Finalize AVD setup' /f /d p:4:1"
+  })
+  depends_on = [azurerm_virtual_machine_extension.avd_agent]
 }
