@@ -11,10 +11,9 @@ resource "azurerm_virtual_desktop_host_pool" "avd_host_pool" {
   custom_rdp_properties        = "enablerdsaadauth:i:1;targetisaadjoined:i:1" # Enable Entra ID auth
 }
 
-# Host pool registration token
 resource "azurerm_virtual_desktop_host_pool_registration_info" "token" {
   hostpool_id     = azurerm_virtual_desktop_host_pool.avd_host_pool.id
-  expiration_date = "2025-12-31T23:59:59Z" # Static expiration to avoid state drift
+  expiration_date = timeadd(timestamp(), "700h") 
 }
 
 # Application group
