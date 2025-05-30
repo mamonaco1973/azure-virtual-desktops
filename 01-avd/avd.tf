@@ -41,14 +41,6 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "avd_
   application_group_id = azurerm_virtual_desktop_application_group.avd_app_group.id
 }
 
-# RBAC: Virtual Machine User Login role for Entra ID login
-resource "azurerm_role_assignment" "vm_user_login" {
-  count                = 3
-  scope                = azurerm_resource_group.project_rg.id
-  role_definition_name = "Virtual Machine User Login"
-  principal_id         = [azuread_user.avd_user1.object_id, azuread_user.avd_user2.object_id, azuread_user.avd_user3.object_id][count.index]
-}
-
 # Network interface for session hosts
 resource "azurerm_network_interface" "avd_nic" {
   count               = var.session_host_count

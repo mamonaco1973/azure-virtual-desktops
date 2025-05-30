@@ -67,3 +67,13 @@ resource "azurerm_role_assignment" "avd_user_access" {
   role_definition_name = "Desktop Virtualization User"                               # Built-in role required for AVD access
   principal_id         = azuread_user.avd_user[each.key].object_id                   # Assign role to the created user
 }
+
+# ------------------------------------------------------------
+# ASSIGN VM LOGIN ROLE TO EACH AVD USER (Entra ID)
+# ------------------------------------------------------------
+resource "azurerm_role_assignment" "vm_user_login" {
+  for_each             = azuread_user.avd_user                                  # Loop over defined users
+  scope                = azurerm_resource_group.project_rg.id                   # Scope is the whole resource group
+  role_definition_name = "Virtual Machine User Login"                           # Role allowing login to session hosts
+  principal_id         = each.value.object_id                                   # Reference user object ID
+}
