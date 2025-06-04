@@ -1,5 +1,7 @@
 # Azure Virtual Desktop
 
+This video is a companion video to [AWS Workspaces](https://youtu.be/rvz-GcEHlTY) which is the AWS Desktop as a Service offering.
+
 In this video we will —
 
 - Deploy a fully automated **Azure Virtual Desktop** environment using Terraform  
