@@ -44,9 +44,6 @@ Common use cases include:
 
 ## Prerequisites
 
-
-## Prerequisites
-
 * [An Azure Account](https://portal.azure.com/)
 * [Install AZ CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) 
 * [Install Latest Terraform](https://developer.hashicorp.com/terraform/install)
