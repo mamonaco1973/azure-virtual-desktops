@@ -62,3 +62,16 @@ else
   echo "NOTE: Successfully logged into Azure."
 fi
 
+ROLE_CHECK=$(az rest --method GET --url "https://graph.microsoft.com/v1.0/directoryRoles" --query "value[?displayName=='Global Administrator'].id" --output tsv)
+if [ -z "$ROLE_CHECK" ]; then
+    echo "ERROR: 'Global Administrator' entra role is NOT assigned to current service principal."
+    exit 1
+else
+    echo "NOTE: 'Global Administrator' entra role is assigned to current service principal."
+fi
+
+while [[ "$(az provider show --namespace Microsoft.App --query "registrationState" --output tsv)" != "Registered" ]]; do
+  echo "NOTE: Waiting for Microsoft.AAD to register..."
+  sleep 10
+done
+echo "NOTE: Microsoft.AAD is currently registered!"
