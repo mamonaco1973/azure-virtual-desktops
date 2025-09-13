@@ -24,7 +24,7 @@ resource "azurerm_key_vault" "credentials_key_vault" {
                                    # Azure AD tenant ID from the currently authenticated user context
   purge_protection_enabled    = false                                                 
                                    # Disable purge protection (irreversible deletion allowed)
-  enable_rbac_authorization   = true                                                  
+  rbac_authorization_enabled  = true                                                  
                                    # Use RBAC (role-based access control) instead of Access Policies
 }
 
