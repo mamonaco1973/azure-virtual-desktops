@@ -6,20 +6,21 @@
 # CREATE A VIRTUAL NETWORK (VNET) TO CONTAIN BOTH APPLICATION AND BASTION SUBNETS
 # -------------------------------------------------------------------------------------------------
 resource "azurerm_virtual_network" "project-vnet" {
-  name                = var.project_vnet                               # VNet name (passed as variable)
-  address_space       = ["10.0.0.0/23"]                                 # Total address range for all subnets (512 IPs)
-  location            = var.project_location                            # Azure region for VNet
-  resource_group_name = azurerm_resource_group.project_rg.name          # Target resource group
+  name                = var.project_vnet                       # VNet name (passed as variable)
+  address_space       = ["10.0.0.0/23"]                        # Total address range for all subnets (512 IPs)
+  location            = var.project_location                   # Azure region for VNet
+  resource_group_name = azurerm_resource_group.project_rg.name # Target resource group
 }
 
 # -------------------------------------------------------------------------------------------------
 # DEFINE A SUBNET FOR VIRTUAL MACHINES / APPLICATION WORKLOADS
 # -------------------------------------------------------------------------------------------------
 resource "azurerm_subnet" "vm-subnet" {
-  name                 = var.project_subnet                             # Subnet name (variable input)
-  resource_group_name  = azurerm_resource_group.project_rg.name         # Must match the VNet’s RG
-  virtual_network_name = azurerm_virtual_network.project-vnet.name      # Attach to parent VNet
-  address_prefixes     = ["10.0.0.0/25"]                                 # Lower half of VNet CIDR (128 IPs)
+  name                            = var.project_subnet                        # Subnet name (variable input)
+  resource_group_name             = azurerm_resource_group.project_rg.name    # Must match the VNet’s RG
+  virtual_network_name            = azurerm_virtual_network.project-vnet.name # Attach to parent VNet
+  address_prefixes                = ["10.0.0.0/25"]                           # Lower half of VNet CIDR (128 IPs)
+  default_outbound_access_enabled = false
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -27,10 +28,10 @@ resource "azurerm_subnet" "vm-subnet" {
 # REQUIRED NAME: MUST BE EXACTLY "AzureBastionSubnet"
 # -------------------------------------------------------------------------------------------------
 resource "azurerm_subnet" "bastion-subnet" {
-  name                 = "AzureBastionSubnet"                           # This name is MANDATORY for Bastion
+  name                 = "AzureBastionSubnet" # This name is MANDATORY for Bastion
   resource_group_name  = azurerm_resource_group.project_rg.name
   virtual_network_name = azurerm_virtual_network.project-vnet.name
-  address_prefixes     = ["10.0.1.0/25"]                                 # Upper half of VNet CIDR (128 IPs)
+  address_prefixes     = ["10.0.1.0/25"] # Upper half of VNet CIDR (128 IPs)
 }
 
 #############################################
@@ -48,7 +49,7 @@ resource "azurerm_network_security_group" "vm-nsg" {
   # -------- Allow SSH access --------
   security_rule {
     name                       = "Allow-SSH"
-    priority                   = 1000                                    # Lower = higher priority
+    priority                   = 1000 # Lower = higher priority
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -133,7 +134,7 @@ resource "azurerm_network_security_group" "bastion-nsg" {
     source_port_range          = "*"
     destination_port_ranges    = ["22", "3389"]
     source_address_prefix      = "*"
-    destination_address_prefix = "VirtualNetwork"                      # Internal only
+    destination_address_prefix = "VirtualNetwork" # Internal only
   }
 
   # -------- REQUIRED: Allow outbound HTTPS to Azure infrastructure --------
@@ -181,7 +182,7 @@ resource "azurerm_nat_gateway" "vm-nat-gateway" {
   name                = "vm-nat-gateway"
   location            = var.project_location
   resource_group_name = azurerm_resource_group.project_rg.name
-  sku_name            = "Standard"                                      # Required SKU for production-grade NAT
+  sku_name            = "Standard" # Required SKU for production-grade NAT
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -191,16 +192,16 @@ resource "azurerm_public_ip" "vm_nat_public_ip" {
   name                = "vm-nat-public-ip"
   location            = var.project_location
   resource_group_name = azurerm_resource_group.project_rg.name
-  allocation_method   = "Static"                                        # Ensures predictable public IP
-  sku                 = "Standard"                                      # Required for use with NAT Gateway
+  allocation_method   = "Static"   # Ensures predictable public IP
+  sku                 = "Standard" # Required for use with NAT Gateway
 }
 
 # -------------------------------------------------------------------------------------------------
 # ASSOCIATE THE PUBLIC IP TO THE NAT GATEWAY
 # -------------------------------------------------------------------------------------------------
 resource "azurerm_nat_gateway_public_ip_association" "vm_nat_assoc" {
-  nat_gateway_id        = azurerm_nat_gateway.vm-nat-gateway.id
-  public_ip_address_id  = azurerm_public_ip.vm_nat_public_ip.id
+  nat_gateway_id       = azurerm_nat_gateway.vm-nat-gateway.id
+  public_ip_address_id = azurerm_public_ip.vm_nat_public_ip.id
 }
 
 # -------------------------------------------------------------------------------------------------
