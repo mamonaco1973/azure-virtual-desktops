@@ -22,4 +22,8 @@ resource "azurerm_bastion_host" "bastion-host" {
     subnet_id            = azurerm_subnet.bastion-subnet.id # Must be "AzureBastionSubnet"
     public_ip_address_id = azurerm_public_ip.bastion-ip.id  # Link to the static IP created above
   }
+
+  depends_on = [
+    azurerm_role_assignment.kv_role_assignment
+  ]
 }
