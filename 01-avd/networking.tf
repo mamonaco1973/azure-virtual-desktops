@@ -20,7 +20,7 @@ resource "azurerm_subnet" "vm-subnet" {
   resource_group_name             = azurerm_resource_group.project_rg.name    # Must match the VNet’s RG
   virtual_network_name            = azurerm_virtual_network.project-vnet.name # Attach to parent VNet
   address_prefixes                = ["10.0.0.0/25"]                           # Lower half of VNet CIDR (128 IPs)
-  #default_outbound_access_enabled = false
+  default_outbound_access_enabled = false
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -81,6 +81,19 @@ resource "azurerm_network_security_group" "vm-nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # -------- Allow ALL Outbound --------
+  security_rule {
+    name                       = "Allow-ALL-Outbound"
+    priority                   = 1003
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }

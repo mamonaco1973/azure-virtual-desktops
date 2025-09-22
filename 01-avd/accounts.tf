@@ -59,9 +59,9 @@ resource "azurerm_key_vault_secret" "avd_user_secret" {
     username = "${each.value}@${var.azure_domain}"                # Insert the correct UPN
     password = random_password.avd_user_password[each.key].result # Secure password
   })
-  key_vault_id = azurerm_key_vault.credentials_key_vault.id # Use your defined Key Vault
-  content_type = "application/json"                         # Set content type for secret
-  depends_on = [  azurerm_role_assignment.kv_role_assignment ]  # Ensure role assignment is done before writing secrets
+  key_vault_id = azurerm_key_vault.credentials_key_vault.id   # Use your defined Key Vault
+  content_type = "application/json"                           # Set content type for secret
+  depends_on   = [azurerm_role_assignment.kv_role_assignment] # Ensure role assignment is done before writing secrets
 }
 
 # ------------------------------------------------------------
