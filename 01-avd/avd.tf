@@ -73,14 +73,14 @@ resource "azurerm_network_interface" "avd_nic" {
 # Create Windows Session Host VMs with Entra ID Join
 # ------------------------------------------------------------
 resource "azurerm_windows_virtual_machine" "avd_session_host" {
-  count                 = var.session_host_count                              # Number of session hosts
-  name                  = "avd-session-${count.index}"                        # VM name
-  location              = var.project_location                                # Azure region
-  resource_group_name   = azurerm_resource_group.project_rg.name              # Resource group
-  size                  = "Standard_D2s_v3"                                   # VM size
-  admin_username        = "sysadmin"                                          # Admin user for RDP access
-  admin_password        = random_password.vm_password.result                  # Admin password
-  network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id] # NIC for VM
+  count                 = var.session_host_count                                         # Number of session hosts
+  name                  = "avd-session-${random_string.key_vault_suffix}-${count.index}" # VM name
+  location              = var.project_location                                           # Azure region
+  resource_group_name   = azurerm_resource_group.project_rg.name                         # Resource group
+  size                  = "Standard_D2s_v3"                                              # VM size
+  admin_username        = "sysadmin"                                                     # Admin user for RDP access
+  admin_password        = random_password.vm_password.result                             # Admin password
+  network_interface_ids = [azurerm_network_interface.avd_nic[count.index].id]            # NIC for VM
 
   os_disk {
     caching              = "ReadWrite"    # Disk caching mode
