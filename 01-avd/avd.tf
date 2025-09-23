@@ -74,7 +74,7 @@ resource "azurerm_network_interface" "avd_nic" {
 # ------------------------------------------------------------
 resource "azurerm_windows_virtual_machine" "avd_session_host" {
   count                 = var.session_host_count                                                # Number of session hosts
-  name                  = "avd-session-${random_string.key_vault_suffix.result}-${count.index}" # VM name
+  name                  = "avd-${random_string.key_vault_suffix.result}-${count.index}"         # VM name
   location              = var.project_location                                                  # Azure region
   resource_group_name   = azurerm_resource_group.project_rg.name                                # Resource group
   size                  = "Standard_D2s_v3"                                                     # VM size
