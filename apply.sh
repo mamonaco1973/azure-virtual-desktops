@@ -1,27 +1,52 @@
 #!/bin/bash
+# ================================================================================
+# Deploy Azure Virtual Desktop environment
+# --------------------------------------------------------------------------------
+# Runs prerequisite validation, discovers the default Entra ID domain,
+# and applies the Terraform configuration for the AVD environment.
+# ================================================================================
+#
+# Steps
+#   1. Validate required tools and environment settings.
+#   2. Query Microsoft Graph for the default Entra ID domain.
+#   3. Run terraform init and terraform apply in the AVD module.
+# ================================================================================
 
-#-------------------------------------------------------------------------------
-# STEP 0: Run environment validation script
-#-------------------------------------------------------------------------------
+set -euo pipefail
+
+# ================================================================================
+# Validate local environment
+# --------------------------------------------------------------------------------
+# Runs the environment validation script before any deployment steps.
+# The script exits immediately if validation fails.
+# ================================================================================
 ./check_env.sh
-if [ $? -ne 0 ]; then
-  echo "ERROR: Environment check failed. Exiting."
-  exit 1  # Hard exit if environment validation fails
-fi
 
-#-------------------------------------------------------------------------------
-# STEP 1: Provision AVD infrastructure (VNet, subnets, NICs, etc.)
-#-------------------------------------------------------------------------------
+# ================================================================================
+# Discover default Entra ID domain
+# --------------------------------------------------------------------------------
+# Queries Microsoft Graph for the tenant's default domain. This value is
+# passed into Terraform so user principal names can be built correctly.
+# ================================================================================
+default_domain=$(
+  az rest \
+    --method get \
+    --url "https://graph.microsoft.com/v1.0/domains" \
+    --query "value[?isDefault].id" \
+    --output tsv
+)
 
-default_domain=$(az rest --method get --url "https://graph.microsoft.com/v1.0/domains" --query "value[?isDefault].id" --output tsv)
-echo "NOTE: Default domain for account is $default_domain"
+echo "NOTE: Default domain for account is ${default_domain}"
 
-cd 01-avd                           # Navigate to Terraform infra folder
-terraform init                      # Initialize Terraform plugins/backend
-terraform apply -var="azure_domain=$default_domain"  -auto-approve       
-                                    # Apply infrastructure configuration without prompt
-cd ..                               # Return to root directory
-
-#-------------------------------------------------------------------------------
-# END OF SCRIPT
-#-------------------------------------------------------------------------------
+# ================================================================================
+# Apply Terraform configuration
+# --------------------------------------------------------------------------------
+# Initializes Terraform in the AVD module directory and applies the
+# deployment using the discovered default Entra ID domain.
+# ================================================================================
+cd 01-avd
+terraform init
+terraform apply \
+  -var="azure_domain=${default_domain}" \
+  -auto-approve
+cd ..

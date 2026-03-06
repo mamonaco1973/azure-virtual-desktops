@@ -1,51 +1,90 @@
-# -------------------------------------------------------------------------------------------------
-# DEFINE THE NAME OF THE AZURE RESOURCE GROUP
-# -------------------------------------------------------------------------------------------------
+# ================================================================================
+# Project resource group name
+# --------------------------------------------------------------------------------
+# Defines the name of the Azure resource group used for this deployment.
+#
+# Notes
+# - The resource group acts as the logical container for all project
+#   resources created by Terraform.
+# - The value can be overridden using CLI variables or tfvars files.
+# ================================================================================
 variable "project_resource_group" {
-  description = "Name of the Azure Resource Group" # This is the container for all resources
-  default     = "avd-rg"                           # Default RG name unless overridden
-  type        = string                             # Must be a string (no lists, no objects)
+  description = "Name of the Azure Resource Group"
+  type        = string
+  default     = "avd-rg"
 }
 
-# -------------------------------------------------------------------------------------------------
-# DEFINE THE NAME OF THE VIRTUAL NETWORK (VNET)
-# -------------------------------------------------------------------------------------------------
+# ================================================================================
+# Virtual network name
+# --------------------------------------------------------------------------------
+# Defines the name of the Azure virtual network used for the project.
+#
+# Notes
+# - The VNet contains both the VM subnet and the Bastion subnet.
+# - The value can be overridden during deployment if required.
+# ================================================================================
 variable "project_vnet" {
-  description = "Name of the Azure Virtual Network" # The logical network space for your project
-  default     = "avd-vnet"                          # Default name — can be overridden via CLI/TFVars
+  description = "Name of the Azure Virtual Network"
   type        = string
+  default     = "avd-vnet"
 }
 
-# -------------------------------------------------------------------------------------------------
-# DEFINE THE NAME OF THE SUBNET INSIDE THE VNET
-# -------------------------------------------------------------------------------------------------
+# ================================================================================
+# VM subnet name
+# --------------------------------------------------------------------------------
+# Defines the name of the subnet used for virtual machines.
+#
+# Notes
+# - This subnet hosts application workloads and AVD session hosts.
+# - It should remain separate from the AzureBastionSubnet.
+# ================================================================================
 variable "project_subnet" {
-  description = "Name of the Azure Subnet within the Virtual Network" # Subdivision of the VNet where VMs live
-  default     = "vm-subnet"                                           # Keep separate from Bastion subnet
+  description = "Name of the Azure Subnet within the Virtual Network"
   type        = string
+  default     = "vm-subnet"
 }
 
-# -------------------------------------------------------------------------------------------------
-# DEFINE THE AZURE REGION FOR RESOURCE DEPLOYMENT
-# -------------------------------------------------------------------------------------------------
+# ================================================================================
+# Azure deployment region
+# --------------------------------------------------------------------------------
+# Defines the Azure region where resources will be deployed.
+#
+# Examples
+# - Central US
+# - East US
+# - West Europe
+# ================================================================================
 variable "project_location" {
-  description = "Azure region where resources will be deployed (e.g., eastus, westeurope)" # Must match available Azure regions
-  default     = "Central US"                                                               # Change this if deploying in a different region
+  description = "Azure region where resources will be deployed"
   type        = string
+  default     = "Central US"
 }
 
-# -------------------------------------------------------------------------------------------------
-# DEFAULT AZURE DOMAIN
-# -------------------------------------------------------------------------------------------------
-
+# ================================================================================
+# Azure Entra ID domain
+# --------------------------------------------------------------------------------
+# Defines the default Azure Entra ID domain used when creating user
+# principal names for generated accounts.
+#
+# Example
+# - exampletenant.onmicrosoft.com
+# ================================================================================
 variable "azure_domain" {
   description = "The default Azure AD domain"
-  #  default     = "mamonaco1973gmail.onmicrosoft.com"
 }
 
-
+# ================================================================================
+# AVD session host count
+# --------------------------------------------------------------------------------
+# Defines the number of Azure Virtual Desktop session host VMs that
+# will be deployed.
+#
+# Notes
+# - Each session host receives its own NIC and VM instance.
+# - Increase this value to scale the AVD environment.
+# ================================================================================
 variable "session_host_count" {
+  description = "Number of AVD session host VMs to deploy"
   type        = number
   default     = 1
-  description = "Number of AVD session host VMs to deploy"
 }
