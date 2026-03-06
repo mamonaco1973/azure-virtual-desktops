@@ -35,4 +35,9 @@ resource "azurerm_bastion_host" "bastion-host" {
     subnet_id            = azurerm_subnet.bastion-subnet.id
     public_ip_address_id = azurerm_public_ip.bastion-ip.id
   }
+
+    depends_on = [
+    azurerm_subnet_network_security_group_association.bastion-nsg-assoc
+  ]
+
 }
