@@ -113,7 +113,7 @@ resource "azurerm_windows_virtual_machine" "avd_session_host" {
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
   }
 
   source_image_reference {
